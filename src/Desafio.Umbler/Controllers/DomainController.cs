@@ -2,76 +2,40 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Desafio.Umbler.Models;
-using Whois.NET;
-using Microsoft.EntityFrameworkCore;
-using DnsClient;
+using Desafio.Umbler.Interfaces;
+using Desafio.Umbler.Validators;
+using FluentValidation.Results;
 
 namespace Desafio.Umbler.Controllers
 {
     [Route("api")]
     public class DomainController : Controller
     {
-        private readonly DatabaseContext _db;
+        private readonly IDomainService _domainService;
 
-        public DomainController(DatabaseContext db)
+        public DomainController(IDomainService domainService)
         {
-            _db = db;
+            _domainService = domainService;
         }
 
         [HttpGet, Route("domain/{domainName}")]
         public async Task<IActionResult> Get(string domainName)
         {
-            var domain = await _db.Domains.FirstOrDefaultAsync(d => d.Name == domainName);
-
-            if (domain == null)
+            var request = new DomainRequest { DomainName = domainName };
+            var validator = new DomainRequestValidator();
+            ValidationResult result = validator.Validate(request);
+            
+            if (!result.IsValid)
             {
-                var response = await WhoisClient.QueryAsync(domainName);
-
-                var lookup = new LookupClient();
-                var result = await lookup.QueryAsync(domainName, QueryType.ANY);
-                var record = result.Answers.ARecords().FirstOrDefault();
-                var address = record?.Address;
-                var ip = address?.ToString();
-
-                var hostResponse = await WhoisClient.QueryAsync(ip);
-
-                domain = new Domain
-                {
-                    Name = domainName,
-                    Ip = ip,
-                    UpdatedAt = DateTime.Now,
-                    WhoIs = response.Raw,
-                    Ttl = record?.TimeToLive ?? 0,
-                    HostedAt = hostResponse.OrganizationName
-                };
-
-                _db.Domains.Add(domain);
+                var errorMsg = string.Join("; ", result.Errors.Select(e => e.ErrorMessage));
+                throw new ArgumentException(errorMsg);
             }
 
-            if (DateTime.Now.Subtract(domain.UpdatedAt).TotalMinutes > domain.Ttl)
-            {
-                var response = await WhoisClient.QueryAsync(domainName);
+            var dto = await _domainService.GetDomainInfoAsync(domainName);
+            if (dto == null)
+                return NotFound(new { error = "Domain not found or could not retrieve information." });
 
-                var lookup = new LookupClient();
-                var result = await lookup.QueryAsync(domainName, QueryType.ANY);
-                var record = result.Answers.ARecords().FirstOrDefault();
-                var address = record?.Address;
-                var ip = address?.ToString();
-
-                var hostResponse = await WhoisClient.QueryAsync(ip);
-
-                domain.Name = domainName;
-                domain.Ip = ip;
-                domain.UpdatedAt = DateTime.Now;
-                domain.WhoIs = response.Raw;
-                domain.Ttl = record?.TimeToLive ?? 0;
-                domain.HostedAt = hostResponse.OrganizationName;
-            }
-
-            await _db.SaveChangesAsync();
-
-            return Ok(domain);
+            return Ok(dto);
         }
     }
 }
