@@ -1,5 +1,8 @@
 ﻿using System;
+using Desafio.Umbler.Interfaces;
 using Desafio.Umbler.Models;
+using Desafio.Umbler.Repositories;
+using Desafio.Umbler.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Desafio.Umbler.Middlewares;
+using Microsoft.OpenApi.Models;
+using AspNetCoreRateLimit;
 
 namespace Desafio.Umbler
 {
@@ -41,8 +47,22 @@ namespace Desafio.Umbler
                         .EnableDetailedErrors()
                 );
 
-
+            services.AddScoped<IDomainService, DomainService>();
+            services.AddScoped<IDomainRepository, DomainRepository>();
+            services.AddScoped<IWhoisClient, WhoisClient>();
+            
             services.AddControllersWithViews();
+            
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Desafio Umbler API", Version = "v1" });
+            });
+            
+
+            services.AddMemoryCache();
+            services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
+            services.AddInMemoryRateLimiting();
+            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,6 +77,9 @@ namespace Desafio.Umbler
                 app.UseExceptionHandler("/Home/Error");
             }
 
+            app.UseMiddleware<ValidationExceptionMiddleware>();
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+
             app.UseStaticFiles();
             app.UseRouting();
 
@@ -66,6 +89,14 @@ namespace Desafio.Umbler
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Desafio Umbler API V1");
+            });
+
+            app.UseIpRateLimiting();
         }
     }
 }
