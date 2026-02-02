@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: desafio-umbler-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: app_database
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./src/Desafio.Umbler
+    container_name: desafio-umbler-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://*:80
+      - ConnectionStrings__DefaultConnection=Server=db;port=3306;database=app_database;uid=app_user;pwd=app_password
+    ports:
+      - "65453:80"
+    
+  frontend:
+    build:
+      context: ./src/Desafio.Umbler.Front
+    container_name: desafio-umbler-frontend
+    depends_on:
+      - backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ApiBaseUrl=http://backend:80/
+    ports:
+      - "5000:80"
+
+volumes:
+  db_data:
