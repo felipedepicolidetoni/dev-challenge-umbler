@@ -127,3 +127,7 @@ Se você rodar o projeto e testar um domínio, verá que ele já está funcionan
 
 - Acesse o Swagger do backend para testar a API em:
   - http://localhost:65453/swagger
+
+## 6. Integração Contínua (CI) com GitHub Actions
+- Adicionado workflow de CI em `.github/workflows/ci.yml` que executa restore, build e testes automatizados para qualquer branch (push ou pull request).
+- O CI garante que nenhum commit com erro de build ou teste seja promovido para branches principais ou mesclado via Pull Request.
