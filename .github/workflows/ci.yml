@@ -16,8 +16,8 @@ jobs:
         with:
           dotnet-version: 6.0.x
       - name: Restore dependencies
-        run: dotnet restore ./src/Desafio.Umbler.sln
+        run: dotnet restore Desafio.Umbler.sln
       - name: Build
-        run: dotnet build ./src/Desafio.Umbler.sln --no-restore
+        run: dotnet build Desafio.Umbler.sln --no-restore
       - name: Test
         run: dotnet test ./src/Desafio.Umbler.Test/Desafio.Umbler.Test.csproj --no-build --verbosity normal
