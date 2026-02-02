@@ -39,7 +39,10 @@ namespace Desafio.Umbler
                 // Replace 'YourDbContext' with the name of your own DbContext derived class.
                 services.AddDbContext<DatabaseContext>(
                     dbContextOptions => dbContextOptions
-                        .UseMySql(connectionString, serverVersion)
+                        .UseMySql(connectionString, serverVersion, mySqlOptions =>
+                        {
+                            mySqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+                        })
                         // The following three options help with debugging, but should
                         // be changed or removed for production.
                         .LogTo(Console.WriteLine, LogLevel.Information)
@@ -68,6 +71,12 @@ namespace Desafio.Umbler
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            using (var scope = app.ApplicationServices.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+                db.Database.Migrate();
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
