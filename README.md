@@ -1,4 +1,3 @@
-
 # Desafio Umbler
 
 Esta é uma aplicação web que recebe um domínio e mostra suas informações de DNS.
@@ -91,6 +90,40 @@ Se você rodar o projeto e testar um domínio, verá que ele já está funcionan
 - O repositório deve estar público para que possamos acessar..
 - Modifique Este readme adicionando informações sobre os motivos das mudanças realizadas.
 
-# Modificações:
+# Modificações
 
-- DESCREVA AQUI O OBJETIVO DAS MODIFICAÇÕES...
+## 1. Refatoração do Frontend para Blazor
+- O frontend foi reescrito utilizando Blazor Server, substituindo o antigo vanilla-js. Isso trouxe maior organização, componentização e reaproveitamento de código.
+- O layout foi adaptado para manter a mesma experiência visual da versão MVC original, incluindo responsividade e uso de Bootstrap.
+- Toda a lógica de requisição HTTP e manipulação de dados foi movida para um serviço dedicado (DomainService), seguindo boas práticas de separação de responsabilidades.
+- Validações de domínio foram implementadas no frontend, impedindo o envio de domínios inválidos e melhorando a experiência do usuário.
+
+## 2. Validação e Arquitetura no Backend
+- Implementado o padrão de arquitetura em camadas: Controllers, Services, Repositories, somados a Validators e DTOs, reduzindo a complexidade dos controllers e facilitando testes e manutenção.
+- O DomainController agora utiliza um DTO (DomainInfoDto) para retornar apenas os dados necessários ao frontend, evitando exposição de propriedades internas e sensíveis.
+- Criado o DomainRequestValidator para centralizar e padronizar a validação das requisições recebidas pelo backend, retornando mensagens de erro claras e apropriadas.
+- Adicionados middlewares para tratamento global de exceções e validações, garantindo respostas consistentes e seguras para o cliente.
+
+## 3. Testes Unitários e Mock de Dependências
+- Ampliada a cobertura de testes unitários para controllers, services e repositories, utilizando o InMemoryDatabase do Entity Framework para simular o banco de dados.
+- Implementados mocks para dependências externas (como consultas Whois e DNS), permitindo testar a lógica de domínio sem dependências reais.
+- Reativado e corrigido o teste unitário que estava comentado, garantindo que todos os testes obrigatórios passem.
+
+## 4. Dockerização e Orquestração
+- Criados Dockerfiles separados para backend e frontend, permitindo build e deploy independentes em containers.
+- Desenvolvido um docker-compose.yml que orquestra os serviços de banco de dados MySQL, backend e frontend, incluindo healthchecks e dependências para garantir a ordem correta de inicialização.
+- Ajustado o backend para aplicar automaticamente as migrations do Entity Framework ao iniciar, mantendo o schema do banco sempre atualizado sem necessidade de comandos manuais.
+
+## 5. Configuração, Segurança e Documentação
+- Para rodar toda a stack com Docker, basta executar:
+
+  ```sh
+  docker compose up -d --build
+  ```
+  Isso irá subir o banco MySQL, o backend e o frontend já integrados.
+
+- Acesse a aplicação frontend em:
+  - http://localhost:5000
+
+- Acesse o Swagger do backend para testar a API em:
+  - http://localhost:65453/swagger
