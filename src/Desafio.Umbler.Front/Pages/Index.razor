@@ -1,0 +1,104 @@
+﻿@page "/"
+@using System.Net.Http.Json
+@using Desafio.Umbler.Front.Data
+
+<div id="mm-0" class="mm-page mm-slideout">
+	<section id="domain-search">
+		<div class="container py-4 pb-md-5">
+			<div id="box-result" class="row">
+				<div class="col-lg-9 col-md-8">
+					<label class="sr-only" for="txt-search">Domain</label>
+					<input class="form-control form-control-lg domain" id="txt-search" name="txt-search" placeholder="Enter the domain you want to search" type="text" @bind="domain" />
+				</div>
+				<div class="col-lg-3 col-md-4 text-xs-right">
+					<button type="button" id="btn-search" name="name" class="btn btn-success btn-block btn-lg text-xs-center" @onclick="SearchDomain" disabled="@(loading)" data-loading-text="Searching...">
+						<i class="icon icon-search icon-white mr-1"></i>
+						<span>@(loading ? "Searching..." : "Search...")</span>
+					</button>
+				</div>
+			</div>
+			<div class="container w-100">
+				   <div class="row @(resultObj == null && string.IsNullOrEmpty(error) ? "hide" : "")" id="whois-results">
+					   @if (!string.IsNullOrEmpty(error))
+					   {
+						   <div class="alert alert-danger">@error</div>
+					   }
+					   @if (resultObj != null)
+					   {
+						   try
+						   {
+							   <dl class="dl-horizontal">
+								   <dt>Domain</dt>
+								   <dd>@(resultObj?.Domain ?? "-")</dd>
+								   <dt>IP</dt>
+								   <dd>@(resultObj?.IpAddress ?? "-")</dd>
+								   <dt>Name Servers</dt>
+								   <dd>@(resultObj?.NameServers != null ? string.Join(", ", resultObj.NameServers) : "-")</dd>
+								   <dt>Hosting Company</dt>
+								   <dd>@(resultObj?.HostingCompany ?? "-")</dd>
+							   </dl>
+						   }
+						   catch (Exception ex)
+						   {
+							   <div class="alert alert-danger">Error rendering result: @ex.Message</div>
+						   }
+					   }
+				   </div>
+			</div>
+		</div>
+	</section>
+
+	<section id="domain-list">
+		<div class="container my-3 my-lg-5">
+		</div>
+	</section>
+
+	<section id="cta-list-ext" class="">
+		<div class="container text-xs-center py-5">
+		</div>
+	</section>
+
+	<div id="table-list-ext" class="bg-faded bg-secondary-lighter" style="display:none">
+		<div class="container py-4">
+		</div>
+	</div>
+
+	<a id="back-top" href="javascript:void(0);" rel="nofollow" class="icon icon-arrow-upward icon-inverse icon-3x hidden-sm-down"></a>
+</div>
+
+@code {
+	private string domain;
+	private string error;
+	private bool loading = false;
+	private DomainInfoDto resultObj;
+
+	[Inject]
+	public Services.DomainService DomainService { get; set; }
+
+	private async Task SearchDomain()
+	{
+		resultObj = null;
+		error = null;
+		loading = true;
+		try
+		{
+			var dto = await DomainService.SearchDomainAsync(domain);
+			if (dto != null)
+			{
+				resultObj = dto;
+			}
+			else
+			{
+				error = "Domain not found.";
+			}
+		}
+		catch (System.Exception ex)
+		{
+			error = ex.Message;
+		}
+		finally
+		{
+			loading = false;
+		}
+	}
+}

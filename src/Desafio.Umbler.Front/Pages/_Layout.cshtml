@@ -1,0 +1,35 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@namespace Desafio.Umbler.Front.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Lato:300,400,400i,700'>
+    <link rel="stylesheet" href="https://static.umbler.com/umbootstrap/themes/umbler-site/dist/css/theme.min.css?v=1">
+    <link rel='stylesheet' href="https://www.umbler.com/css/main.css?v=jzpPQTjVBwhK2gEOpAg6ZpvjUUQgKLsFVwwlRGnOZHY">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-ENjdO4Dr2bkBIFxQpeoA6DQD5Nq2h3z9sZ6lZ9YYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link href="Desafio.Umbler.Front.styles.css" rel="stylesheet" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body>
+    @RenderBody()
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>
